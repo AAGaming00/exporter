@@ -71,7 +71,7 @@ module.exports = class Exporter extends Plugin {
     </html>
 
     `.replace(/(?<!discord.com)(\/assets\/)/g, 'https://canary.discord.com/assets/');
-    const path = join(__dirname, 'exports', `${start}-${end}.html`);
+    const path = join(__dirname, 'exports', `${start}${end ? `-${end}` : ''}.html`);
     await fs.promises.writeFile(path, htmlTemplate);
     shell.openPath(path);
   }
