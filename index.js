@@ -66,7 +66,7 @@ module.exports = class Exporter extends Plugin {
       let n;
       if (!doneMap[e[2]]) {
         console.log(e);
-        n = (!(/cdn|media|(?:images-ext-\d).discordapp.(?:com|net)/g).test(e[2]) ? e[2].split('/')[e[2].split('/').length - 1] : e[2].split('/').split(5).join('.')).replace(/(\?.*)/g, '');
+        n = (!(/cdn|media|(?:images-ext-\d).discordapp.(?:com|net)/g).test(e[2]) ? e[2].split('/')[e[2].split('/').length - 2] : e[2].split('/').split(5).join('.')).replace(/(\?.*)/g, '');
         const r = await get((/https?:\/\/(?:cdn|media|(?:images-ext-\d))/g).test(e[1]) ? e[1].replace('&amp;', '&') : `${window.location.origin}${e[1]}`);
         console.log(e[2].split('/'));
         console.log(n);
