@@ -85,7 +85,7 @@ module.exports = class Exporter extends Plugin {
     for (const link of Array.from(
       document.querySelectorAll('style[data-powercord="true"]')
     )) {
-      const linkid = link.id.replace(/[^-]*$/g, hash(link.innerText));
+      const linkid = link.id.replace(/-[^-]*$/g, `-${hash(link.innerText)}`);
       plugincss.push(linkid);
       await fs.promises.writeFile(
         join(
