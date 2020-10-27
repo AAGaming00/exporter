@@ -15,6 +15,18 @@ function idIndex (id, array) {
   const filter = array.filter((x) => x.id === id);
   return array.indexOf(filter[0]);
 }
+
+function hash (str) {
+  let hash = 0,
+    i, chr;
+  for (i = 0; i < str.length; i++) {
+    chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
+
 module.exports = class Exporter extends Plugin {
   startPlugin () {
     powercord.api.commands.registerCommand({
@@ -68,20 +80,36 @@ module.exports = class Exporter extends Plugin {
         timeout: 3e3
       }
     );
-    let css = '';
+    const plugincss = [];
+    let plugincsslinks = '';
     for (const link of Array.from(
-      document.querySelectorAll('style[data-powercord="true"]')
+      document.querySelectorAll('style[data-powercord="true"]:not([data-theme="true"])')
     )) {
-      css += link.innerText;
+      const linkid = link.id.replace(/[^-]*$/g, hash(link.innerText));
+      plugincss.push(linkid);
+      await fs.promises.writeFile(
+        join(
+          __dirname,
+          'exports',
+          'assets',
+          'plugins',
+          `${linkid}.css`
+        ),
+        link.innerText
+      );
+    }
+    for (const plugin of plugincss) {
+      plugincsslinks += `<link rel="stylesheet" href="./assets/${plugin}.css"/>`;
     }
     let discordcss;
+    let dcss = '';
     for (const link of Array.from(
       document.querySelectorAll(
         'link[rel="stylesheet"][href*="/assets/"]'
       )
     )) {
       const r = await get(link.href);
-      css += await r.body.toString();
+      dcss += await r.body.toString();
       discordcss = link.href.split('/')[link.href.split('/').length - 1];
       await fs.promises.writeFile(
         join(
@@ -90,7 +118,7 @@ module.exports = class Exporter extends Plugin {
           'assets',
           link.href.split('/')[link.href.split('/').length - 1]
         ),
-        css
+        dcss
       );
     }
     const doneMap = {};
@@ -103,6 +131,8 @@ module.exports = class Exporter extends Plugin {
         return;
       }
       let n;
+      e[2] = e[2].replace(/&amp;/g, '&');
+      e[1] = e[1].replace(/&amp;/g, '&');
       if (!doneMap[e[2]]) {
         console.log(e);
         n = e[2]
@@ -115,7 +145,7 @@ module.exports = class Exporter extends Plugin {
         try {
           const r = await get(
             !(/\/assets\//g).test(e[1])
-              ? e[1].replace('&amp;', '&')
+              ? e[1]
               : `${window.location.origin}${e[1]}`
           );
           console.log(e[2].split('/'));
@@ -131,7 +161,7 @@ module.exports = class Exporter extends Plugin {
         n = doneMap[e[2]];
       }
       if (n) {
-        messages = messages.replace(e[1], `./assets/cdn/${n}`);
+        messages = messages.replace(new RegExp(`/${e[1]}/g`), `./assets/cdn/${n}`);
       }
     }
     // button thing is a hack until i figure out how to remove them entirely
@@ -147,6 +177,7 @@ module.exports = class Exporter extends Plugin {
               display: none;
             }
             </style>
+            ${plugincsslinks}
         </head>
         <body>
         <div class="scroller-2LSbBU auto-Ge5KZx scrollerBase-289Jih disableScrollAnchor-3V9UtP" dir="ltr" style="overflow: hidden scroll; padding-right: 0px;">
