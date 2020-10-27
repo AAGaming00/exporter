@@ -96,7 +96,7 @@ module.exports = class Exporter extends Plugin {
     const doneMap = {};
     for (const e of [
       ...messages.matchAll(
-        /(?:(?:src|href)=")((?:https?:\/\/(?:cdn|media|(?:images-ext-\d))?\.discord(?:app?)\.(?:com|net)|(?:\/assets\/))([^"]*))(?:")/g
+        /(?:(?:src|href|poster)=")((?:https?:\/\/(?:cdn|media|(?:images-ext-\d))?\.discord(?:app?)\.(?:com|net)|(?:\/assets\/))([^"]*))(?:")/g
       )
     ]) {
       if (e[1] === '' || !e[1]) {
