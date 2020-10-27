@@ -1,5 +1,5 @@
 const { Plugin } = require('powercord/entities');
-const { get } = require("powercord/http");
+const { get } = require('powercord/http');
 // const { getModule } = require('powercord/webpack');
 const fs = require('fs');
 const { join } = require('path');
@@ -39,8 +39,17 @@ module.exports = class Exporter extends Plugin {
       return;
     }
     const toExport = children.slice(startIndex, endIndex !== -1 ? endIndex : undefined).filter(x => x.className !== 'navigationDescription-3hiGKr' && x.className !== 'wrapper-3vR61M');
+    if (!end) {
+      end = toExport[toExport.length - 1].id.replace('chat-messages-', '');
+    }
     console.log(startIndex, endIndex, toExport);
     let messages = toExport.map(x => x.outerHTML).join('\n');
+    powercord.api.notices.sendToast(`exporter-${(Math.random().toString(36) + Date.now()).substring(2, 7)}`, {
+      header: 'Archiving',
+      content: 'Archiving messages...\nMake sure to include the assets folder relative to the file!',
+      icon: 'history',
+      timeout: 7e3
+    });
     let css = '';
     for (const link of Array.from(document.querySelectorAll('style[data-plugin="true"]'))) {
       css += link.innerText;
@@ -58,12 +67,12 @@ module.exports = class Exporter extends Plugin {
       console.log(e[2].split('/'));
       console.log(n);
       const path = join(__dirname, 'exports', 'assets', 'cdn', n);
-      console.log(r)
+      console.log(r);
       await fs.promises.writeFile(path, r.body);
       messages = messages.replace(e[1], `./assets/cdn/${n}`);
     }
-        // messages.replace()
-        const htmlTemplate = `
+    // messages.replace()
+    const htmlTemplate = `
     <html class="${document.documentElement.className.replace('mouse-mode ', '')}">
         <head>
             <link rel="stylesheet" href="./assets/discord.css">
@@ -78,7 +87,7 @@ module.exports = class Exporter extends Plugin {
     </html>
 
     `;// .replace(/(?<!discord.com)(\/assets\/)/g, 'https://canary.discord.com/assets/');
-    const htmlPath = join(__dirname, 'exports', `${start}${end ? `-${end}` : ''}.html`);
+    const htmlPath = join(__dirname, 'exports', `${start}-${end}.html`);
     await fs.promises.writeFile(htmlPath, htmlTemplate);
     shell.openPath(htmlPath);
   }
