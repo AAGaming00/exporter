@@ -54,11 +54,12 @@ module.exports = class Exporter extends Plugin {
     for (const link of Array.from(document.querySelectorAll('style[data-plugin="true"]'))) {
       css += link.innerText;
     }
-
-    for (const link of Array.from(document.querySelectorAll('link[rel="stylesheet"][href*="/assets"]'))) {
+    let discordcss;
+    for (const link of Array.from(document.querySelectorAll('link[rel="stylesheet"][href*="/assets/"]'))) {
       const r = await get(link.href);
       css += await r.body.toString();
-      await fs.promises.writeFile(join(__dirname, 'exports', 'assets', 'discord.css'), css);
+      discordcss = link.href.split('/')[link.href.split('/').length - 1];
+      await fs.promises.writeFile(join(__dirname, 'exports', 'assets', link.href.split('/')[link.href.split('/').length - 1]), css);
     }
     const doneMap = {};
     for (const e of [ ...messages.matchAll(/(?:(?:src|href)=")((?:https?:\/\/(?:cdn|media|(?:images-ext-\d))?\.discord(?:app?)\.(?:com|net))([^"]*))(?:")/g) ]) {
@@ -82,7 +83,7 @@ module.exports = class Exporter extends Plugin {
     const htmlTemplate = `
     <html class="${document.documentElement.className.replace('mouse-mode ', '')}">
         <head>
-            <link rel="stylesheet" href="./assets/discord.css">
+            <link rel="stylesheet" href="./assets/${discordcss}">
         </head>
         <body>
         <div class="scroller-2LSbBU auto-Ge5KZx scrollerBase-289Jih disableScrollAnchor-3V9UtP" dir="ltr" style="overflow: hidden scroll; padding-right: 0px;">
