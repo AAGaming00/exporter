@@ -40,7 +40,7 @@ module.exports = class Exporter extends Plugin {
     }
     const toExport = children.slice(startIndex, endIndex !== -1 ? endIndex : undefined).filter(x => x.className !== 'navigationDescription-3hiGKr' && x.className !== 'wrapper-3vR61M');
     if (!end) {
-      end = toExport[toExport.length - 1].id.replace('chat-messages-', '');
+      end = toExport[toExport.length - 2].id.replace('chat-messages-', '');
     }
     console.log(startIndex, endIndex, toExport);
     let messages = toExport.map(x => x.outerHTML).join('\n');
@@ -61,7 +61,7 @@ module.exports = class Exporter extends Plugin {
       await fs.promises.writeFile(join(__dirname, 'exports', 'assets', 'discord.css'), css);
     }
     const doneMap = {};
-    for (const e of [ ...messages.matchAll(/src="((?:https?:\/\/(?:cdn|media|(?:images-ext-\d))?\.discord(?:app?)\.(?:com|net))?([^"]*))"/g) ]) {
+    for (const e of [ ...messages.matchAll(/"((?:https?:\/\/(?:cdn|media|(?:images-ext-\d))?\.discord(?:app?)\.(?:com|net))?([^"]*))"/g) ]) {
       let n;
       if (!doneMap[e[2]]) {
         console.log(e);
