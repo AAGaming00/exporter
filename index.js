@@ -161,7 +161,7 @@ module.exports = class Exporter extends Plugin {
         n = doneMap[e[2]];
       }
       if (n) {
-        messages = messages.replace(new RegExp(`/${e[1]}/g`), `./assets/cdn/${n}`);
+        messages = messages.replace(e[1], `./assets/cdn/${n}`);
       }
     }
     // button thing is a hack until i figure out how to remove them entirely
