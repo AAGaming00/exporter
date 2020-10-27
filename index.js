@@ -1,4 +1,5 @@
 const { Plugin } = require('powercord/entities');
+const { get } = require("powercord/http");
 // const { getModule } = require('powercord/webpack');
 const fs = require('fs');
 const { join } = require('path');
@@ -39,27 +40,33 @@ module.exports = class Exporter extends Plugin {
     }
     const toExport = children.slice(startIndex, endIndex !== -1 ? endIndex : undefined).filter(x => x.className !== 'navigationDescription-3hiGKr' && x.className !== 'wrapper-3vR61M');
     console.log(startIndex, endIndex, toExport);
-    const messages = toExport.map(x => x.outerHTML).join('\n');
+    let messages = toExport.map(x => x.outerHTML).join('\n');
     let css = '';
-    Array.prototype.forEach.call(document.querySelectorAll('link[rel="stylesheet"][href*="/assets"]'), (link) => {
-    /*
-     *   fetch(link.href).then(r => {
-     *       css +=
-     *   });
-     */
-      const newLink = document.createElement('link');
-      newLink.href = link.href;
-      newLink.rel = link.rel;
-      // newLink.href = `https://canary.discord.com${newLink.href}`;
-      css += newLink.outerHTML;
-    });
-    const htmlTemplate = `
+    for (const link of Array.from(document.querySelectorAll('style[data-plugin="true"]'))) {
+      css += link.innerText;
+    }
+
+    for (const link of Array.from(document.querySelectorAll('link[rel="stylesheet"][href*="/assets"]'))) {
+      const r = await get(link.href);
+      css += await r.body.toString();
+      await fs.promises.writeFile(join(__dirname, 'exports', 'assets', 'discord.css'), css);
+    }
+    for (const e of [ ...messages.matchAll(/src="((?:https?:\/\/(?:cdn|media|(?:images-ext-\d))?\.discord(?:app?)\.(?:com|net))?([^"]*))"/g) ]) {
+      console.log(e);
+      const r = await get(e[1].includes('discordapp') ? e[1].replace('&amp;', '&') : `${window.location.origin}${e[1]}`);
+      const n = (!(/media|(?:images-ext-\d).discordapp.net/g).test(e[2]) ? e[2].split('/')[e[2].split('/').length - 1] : e[2].split('/').split(5).join('.')).replace(/(\?.*)/g, '');
+      console.log(e[2].split('/'));
+      console.log(n);
+      const path = join(__dirname, 'exports', 'assets', 'cdn', n);
+      console.log(r)
+      await fs.promises.writeFile(path, r.body);
+      messages = messages.replace(e[1], `./assets/cdn/${n}`);
+    }
+        // messages.replace()
+        const htmlTemplate = `
     <html class="${document.documentElement.className.replace('mouse-mode ', '')}">
         <head>
-            <style>
-            @font-face{font-family:Whitney;font-weight:300;src:url(https://cors-anywhere.herokuapp.com/https://canary.discord.com/assets/6c6374bad0b0b6d204d8d6dc4a18d820.woff) format("woff")}@font-face{font-family:Whitney;font-weight:400;src:url(https://cors-anywhere.herokuapp.com/https://canary.discord.com/assets/e8acd7d9bf6207f99350ca9f9e23b168.woff) format("woff")}@font-face{font-family:Whitney;font-weight:500;src:url(https://cors-anywhere.herokuapp.com/https://canary.discord.com/assets/3bdef1251a424500c1b3a78dea9b7e57.woff) format("woff")}@font-face{font-family:Whitney;font-weight:600;src:url(https://cors-anywhere.herokuapp.com/https://canary.discord.com/assets/be0060dafb7a0e31d2a1ca17c0708636.woff) format("woff")}@font-face{font-family:Whitney;font-weight:700;src:url(https://cors-anywhere.herokuapp.com/https://canary.discord.com/assets/8e12fb4f14d9c4592eb8ec9f22337b04.woff) format("woff")}
-            </style>
-            ${css}
+            <link rel="stylesheet" href="./assets/discord.css">
         </head>
         <body>
         <div class="scroller-2LSbBU auto-Ge5KZx scrollerBase-289Jih disableScrollAnchor-3V9UtP" dir="ltr" style="overflow: hidden scroll; padding-right: 0px;">
@@ -70,10 +77,10 @@ module.exports = class Exporter extends Plugin {
         </body>
     </html>
 
-    `.replace(/(?<!discord.com)(\/assets\/)/g, 'https://canary.discord.com/assets/');
-    const path = join(__dirname, 'exports', `${start}${end ? `-${end}` : ''}.html`);
-    await fs.promises.writeFile(path, htmlTemplate);
-    shell.openPath(path);
+    `;// .replace(/(?<!discord.com)(\/assets\/)/g, 'https://canary.discord.com/assets/');
+    const htmlPath = join(__dirname, 'exports', `${start}${end ? `-${end}` : ''}.html`);
+    await fs.promises.writeFile(htmlPath, htmlTemplate);
+    shell.openPath(htmlPath);
   }
 
   handleCommand (args) {
