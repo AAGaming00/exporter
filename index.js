@@ -83,7 +83,7 @@ module.exports = class Exporter extends Plugin {
     const plugincss = [];
     let plugincsslinks = '';
     for (const link of Array.from(
-      document.querySelectorAll('style[data-powercord="true"]:not([data-theme="true"])')
+      document.querySelectorAll('style[data-powercord="true"]')
     )) {
       const linkid = link.id.replace(/[^-]*$/g, hash(link.innerText));
       plugincss.push(linkid);
