@@ -61,11 +61,11 @@ module.exports = class Exporter extends Plugin {
       await fs.promises.writeFile(join(__dirname, 'exports', 'assets', 'discord.css'), css);
     }
     const doneMap = {};
-    for (const e of [ ...messages.matchAll(/"((?:https?:\/\/(?:cdn|media|(?:images-ext-\d))?\.discord(?:app?)\.(?:com|net))?([^"]*))"/g) ]) {
+    for (const e of [ ...messages.matchAll(/(?:(?:src|href)=")((?:https?:\/\/(?:cdn|media|(?:images-ext-\d))?\.discord(?:app?)\.(?:com|net))([^"]*))(?:")/g) ]) {
       let n;
       if (!doneMap[e[2]]) {
         console.log(e);
-        const r = await get(e[1].includes('discordapp') ? e[1].replace('&amp;', '&') : `${window.location.origin}${e[1]}`);
+        const r = await get(/https?:\/\/(?:cdn|media|(?:images-ext-\d))/g.test(e[1]) ? e[1].replace('&amp;', '&') : `${window.location.origin}${e[1]}`);
         n = (!(/media|(?:images-ext-\d).discordapp.net/g).test(e[2]) ? e[2].split('/')[e[2].split('/').length - 1] : e[2].split('/').split(5).join('.')).replace(/(\?.*)/g, '');
         console.log(e[2].split('/'));
         console.log(n);
