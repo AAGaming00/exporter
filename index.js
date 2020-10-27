@@ -48,7 +48,7 @@ module.exports = class Exporter extends Plugin {
       header: 'Archiving',
       content: 'Archiving messages...\nMake sure to include the assets folder relative to the file!',
       icon: 'history',
-      timeout: 7e3
+      timeout: 3e3
     });
     let css = '';
     for (const link of Array.from(document.querySelectorAll('style[data-plugin="true"]'))) {
